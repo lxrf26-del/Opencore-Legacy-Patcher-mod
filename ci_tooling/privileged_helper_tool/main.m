@@ -16,7 +16,7 @@
 
 #define UTILITY_VERSION "1.0.0"
 
-#define VALID_CLIENT_TEAM_ID @"S74BDJXQMD"
+#define VALID_CLIENT_CERTIFICATE @"19FD838A17B096F42774B90A438950EC8052A4A5"
 
 #define OCLP_PHT_ERROR_MISSING_ARGUMENTS           160
 #define OCLP_PHT_ERROR_SET_UID_MISSING             161
@@ -31,29 +31,36 @@
 #define OCLP_PHT_ERROR_CATCH_ALL                   170
 
 
-NSDictionary *getSigningInformationFromPath(NSString *path) {
-    SecStaticCodeRef codeRef;
-    OSStatus status = SecStaticCodeCreateWithPath((__bridge CFURLRef)[NSURL fileURLWithPath:path], kSecCSDefaultFlags, &codeRef);
+OSStatus checkModSignature(SecCodeRef code, NSString *identifier) {
+    NSString *rule = [NSString stringWithFormat:@"certificate leaf = H\"%@\" and identifier \"%@\"", VALID_CLIENT_CERTIFICATE, identifier];
+    SecRequirementRef requirement = NULL;
+    OSStatus status = SecRequirementCreateWithString((__bridge CFStringRef)rule, kSecCSDefaultFlags, &requirement);
     if (status != errSecSuccess) {
-        return nil;
+        return status;
     }
-
-    CFDictionaryRef codeDict = NULL;
-    status = SecCodeCopySigningInformation(codeRef, kSecCSSigningInformation, &codeDict);
-    if (status != errSecSuccess) {
-        return nil;
+    status = SecCodeCheckValidity(code, kSecCSDefaultFlags, requirement);
+    if (status == errSecSuccess) {
+        SecStaticCodeRef staticCode = NULL;
+        status = SecCodeCopyStaticCode(code, kSecCSDefaultFlags, &staticCode);
+        if (status == errSecSuccess) {
+            status = SecStaticCodeCheckValidity(staticCode, kSecCSStrictValidate | kSecCSCheckNestedCode, requirement);
+            CFRelease(staticCode);
+        }
     }
-
-    return (__bridge NSDictionary *)codeDict;
+    CFRelease(requirement);
+    return status;
 }
 
-NSString *getParentProcessPath() {
-    char pathbuf[PROC_PIDPATHINFO_MAXSIZE];
-    if (proc_pidpath(getppid(), pathbuf, sizeof(pathbuf)) <= 0) {
-        return nil;
+OSStatus checkModCaller(void) {
+    SecCodeRef caller = NULL;
+    NSDictionary *attributes = @{(__bridge NSString *)kSecGuestAttributePid: @(getppid())};
+    OSStatus status = SecCodeCopyGuestWithAttributes(NULL, (__bridge CFDictionaryRef)attributes, kSecCSDefaultFlags, &caller);
+    if (status != errSecSuccess) {
+        return status;
     }
-    NSString *path = [NSString stringWithUTF8String:pathbuf];
-    return path;
+    status = checkModSignature(caller, @"com.dortania.opencore-legacy-patcher");
+    CFRelease(caller);
+    return status;
 }
 
 NSString *getProcessPath() {
@@ -98,32 +105,16 @@ int main(int argc, const char * argv[]) {
             return OCLP_PHT_ERROR_SET_UID_FAILED;
         }
 
-        NSString *parentProcessPath = getParentProcessPath();
-        if (parentProcessPath == nil) {
-            return OCLP_PHT_ERROR_PARENT_PATH_MISSING;
-        }
-
-        NSDictionary *processSigningInformation = getSigningInformationFromPath(processPath);
-        NSDictionary *parentProcessSigningInformation = getSigningInformationFromPath(parentProcessPath);
-
-        if (processSigningInformation == nil || parentProcessSigningInformation == nil) {
+        SecCodeRef selfCode = NULL;
+        OSStatus signatureStatus = SecCodeCopySelf(kSecCSDefaultFlags, &selfCode);
+        if (signatureStatus != errSecSuccess) {
             return OCLP_PHT_ERROR_SIGNING_INFORMATION_MISSING;
         }
-
-        #ifdef DEBUG
-        // Skip Team ID check in debug mode
-        // DO NOT USE IN PRODUCTION
-        #else
-        // Check Team ID
-        if (![processSigningInformation[@"teamid"] isEqualToString:VALID_CLIENT_TEAM_ID] || ![parentProcessSigningInformation[@"teamid"] isEqualToString:VALID_CLIENT_TEAM_ID]) {
-            return OCLP_PHT_ERROR_INVALID_TEAM_ID;
-        }
-
-        // Check Certificates
-        if (![processSigningInformation[@"certificates"] isEqualToArray:parentProcessSigningInformation[@"certificates"]]) {
+        signatureStatus = checkModSignature(selfCode, @"com.dortania.opencore-legacy-patcher.privileged-helper");
+        CFRelease(selfCode);
+        if (signatureStatus != errSecSuccess || checkModCaller() != errSecSuccess) {
             return OCLP_PHT_ERROR_INVALID_CERTIFICATES;
         }
-        #endif
 
         NSString *command = nil;
         NSArray *arguments = @[];
