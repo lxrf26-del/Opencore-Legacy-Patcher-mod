@@ -3,7 +3,7 @@ name: CI - Build Hackintosh Mod
 on:
   push:
     branches: [mod]
-    tags: ['*+m.*']
+    tags: ['*\+m.*']
     paths-ignore: ['docs/**']
   workflow_dispatch:
 
