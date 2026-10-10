@@ -71,11 +71,8 @@ class CheckBinaryUpdates:
                 # Release build > special build: assume special build is newer
                 return False
 
-        if first_version == second_version:
-            if not self.constants.commit_info[0].startswith("refs/tags"):
-                # Check for nightly builds
-                return True
-
+        # A branch-built artifact can later be published unchanged. Its build
+        # label must not turn the same semantic version into an update.
         return first_version > second_version
 
 
@@ -122,7 +119,8 @@ class CheckBinaryUpdates:
             if asset["name"] == "OpenCore-Patcher.pkg":
                 self.latest_details = {
                     "Name": asset["name"],
-                    "Version": latest_remote_version,
+                    # Compare parsed versions, but display the release spelling.
+                    "Version": data_set["tag_name"],
                     "Link": asset["browser_download_url"],
                     "Github Link": data_set["html_url"],
                 }

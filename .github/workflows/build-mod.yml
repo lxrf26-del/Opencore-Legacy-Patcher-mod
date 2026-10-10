@@ -30,6 +30,8 @@ jobs:
           test "$(md5 -q "$RUNNER_TEMP/python.pkg")" = fa29f456feb6b5c4f52456a8b8ba347b
           sudo installer -pkg "$RUNNER_TEMP/python.pkg" -target /
           "$PYTHON" -m pip install -r requirements.txt
+      - name: Test update checks
+        run: '"$PYTHON" ci_tooling/test_mod_updates.py'
       - name: Fetch released PatcherSupportPkg
         timeout-minutes: 20
         run: |
@@ -49,7 +51,7 @@ jobs:
       - name: Prepare assets and application
         run: |
           "$PYTHON" Build-Project.command --run-as-individual-steps --prepare-assets
-          "$PYTHON" Build-Project.command --run-as-individual-steps --prepare-application --git-branch "$GITHUB_REF_NAME" --git-commit-url "https://github.com/$GITHUB_REPOSITORY/commit/$GITHUB_SHA" --git-commit-date "$(git show -s --format=%cI HEAD)"
+          "$PYTHON" Build-Project.command --run-as-individual-steps --prepare-application --git-branch "$GITHUB_REF" --git-commit-url "https://github.com/$GITHUB_REPOSITORY/commit/$GITHUB_SHA" --git-commit-date "$(git show -s --format=%cI HEAD)"
       - name: Fetch pinned rcodesign
         run: |
           curl --fail --location --retry 3 https://github.com/indygreg/apple-platform-rs/releases/download/apple-codesign/0.29.0/apple-codesign-0.29.0-x86_64-apple-darwin.tar.gz -o "$RUNNER_TEMP/rcodesign.tar.gz"

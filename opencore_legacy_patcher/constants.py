@@ -13,9 +13,9 @@ from .detections import device_probe
 class Constants:
     def __init__(self) -> None:
         # Patcher Versioning
-        self.patcher_version:                 str = "3.0.0-rc.3+m.1"  # OpenCore-Legacy-Patcher
-        self.patcher_bundle_version:          str = "3.0.301"  # Numeric Apple metadata: RC3, Mod 1
-        self.patcher_support_pkg_version:     str = "2.0.2+m.1"  # PatcherSupportPkg
+        self.patcher_version:                 str = "3.0.0-rc.3+m.2"  # OpenCore-Legacy-Patcher
+        self.patcher_bundle_version:          str = "3.0.302"  # Numeric Apple metadata: RC3, Mod 2
+        self.patcher_support_pkg_version:     str = "2.0.2+m.2"  # PatcherSupportPkg
         self.copyright_date:                  str = "Copyright © 2020-2026 Dortania and OpenCore Legacy Patcher contributors"
         self.patcher_name:                    str = "OpenCore Legacy Patcher"
 
