@@ -3,6 +3,7 @@ gui_sys_patch_start.py: Root Patching Frame
 """
 
 import wx
+import re
 import sys
 import time
 import logging
@@ -274,7 +275,7 @@ class SysPatchStartFrame(wx.Frame):
                     i = i + 20
 
             if i == 20:
-                patch_label.SetLabel(patch_label.GetLabel().replace("-", ""))
+                patch_label.SetLabel(re.sub(r"^- ", "", patch_label.GetLabel()))
                 patch_label.Centre(wx.HORIZONTAL)
 
             elif i == 0:

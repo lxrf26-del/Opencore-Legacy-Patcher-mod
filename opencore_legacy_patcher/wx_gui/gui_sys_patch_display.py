@@ -3,6 +3,7 @@ gui_sys_patch_display.py: Display root patching menu
 """
 
 import wx
+import re
 import logging
 import plistlib
 import threading
@@ -147,7 +148,7 @@ class SysPatchDisplayFrame(wx.Frame):
                         patch_label.SetFont(gui_support.font_factory(13, wx.FONTWEIGHT_NORMAL))
 
                 if i == 20:
-                    patch_label.SetLabel(patch_label.GetLabel().replace("-", ""))
+                    patch_label.SetLabel(re.sub(r"^- ", "", patch_label.GetLabel()))
                     patch_label.Centre(wx.HORIZONTAL)
 
             if patches[HardwarePatchsetValidation.PATCHING_NOT_POSSIBLE] is True:
@@ -186,7 +187,7 @@ class SysPatchDisplayFrame(wx.Frame):
                     i = i + 20
 
                 if i == 20:
-                    patch_label.SetLabel(patch_label.GetLabel().replace("-", ""))
+                    patch_label.SetLabel(re.sub(r"^- ", "", patch_label.GetLabel()))
                     patch_label.Centre(wx.HORIZONTAL)
 
             else:
