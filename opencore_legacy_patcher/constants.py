@@ -13,18 +13,19 @@ from .detections import device_probe
 class Constants:
     def __init__(self) -> None:
         # Patcher Versioning
-        self.patcher_version:                 str = "3.0.0"  # OpenCore-Legacy-Patcher
-        self.patcher_support_pkg_version:     str = "2.0.2"  # PatcherSupportPkg
+        self.patcher_version:                 str = "3.0.0-rc.3+m.1"  # OpenCore-Legacy-Patcher
+        self.patcher_bundle_version:          str = "3.0.301"  # Numeric Apple metadata: RC3, Mod 1
+        self.patcher_support_pkg_version:     str = "2.0.2+m.1"  # PatcherSupportPkg
         self.copyright_date:                  str = "Copyright © 2020-2026 Dortania and OpenCore Legacy Patcher contributors"
         self.patcher_name:                    str = "OpenCore Legacy Patcher"
 
         # URLs
-        self.url_patcher_support_pkg:         str = "https://github.com/dortania/PatcherSupportPkg/releases/download/"
+        self.url_patcher_support_pkg:         str = "https://github.com/b00t0x/PatcherSupportPkg/releases/download/"
         self.discord_link:                    str = "https://discord.gg/rqdPgH8xSN"
         self.guide_link:                      str = "https://dortania.github.io/OpenCore-Legacy-Patcher/"
-        self.repo_link:                       str = "https://github.com/dortania/OpenCore-Legacy-Patcher"
+        self.repo_link:                       str = "https://github.com/b00t0x/OpenCore-Legacy-Patcher"
         self.installer_pkg_url:               str = f"{self.repo_link}/releases/download/{self.patcher_version}/AutoPkg-Assets.pkg"
-        self.installer_pkg_url_nightly:       str = "http://nightly.link/dortania/OpenCore-Legacy-Patcher/workflows/build-app-wxpython/main/AutoPkg-Assets.pkg.zip"
+        self.installer_pkg_url_nightly:       str = "https://nightly.link/b00t0x/OpenCore-Legacy-Patcher/workflows/build-mod/mod/AutoPkg-Assets.pkg.zip"
 
         # OpenCore Versioning
         # https://github.com/acidanthera/OpenCorePkg
@@ -102,7 +103,7 @@ class Constants:
         self.aspp_override_version:          str = "1.0.1"  # ACPI_SMC_PlatformPlugin Override
         self.ecm_override_version:           str = "1.0.0"  # AppleUSBECM Override
         self.rsrhelper_version:              str = "1.0.2"  # RSRHelper
-        self.amfipass_version:               str = "1.4.1"  # AMFIPass
+        self.amfipass_version:               str = "1.4.1-Mod"  # Mod PSP trust anchor
         self.amfipass_compatibility_version: str = "1.2.1"  # Minimum AMFIPass version required
 
         ## Syncretic

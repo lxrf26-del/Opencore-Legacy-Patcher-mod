@@ -93,7 +93,7 @@ class GeneratePackage:
         assert macos_pkg_builder.Packages(
             pkg_output="./dist/OpenCore-Patcher-Uninstaller.pkg",
             pkg_bundle_id="com.dortania.opencore-legacy-patcher-uninstaller",
-            pkg_version=constants.Constants().patcher_version,
+            pkg_version=constants.Constants().patcher_bundle_version,
             pkg_background="./ci_tooling/pkg_assets/PkgBackground-Uninstaller.png",
             pkg_preinstall_script=_tmp_uninstall.name,
             pkg_as_distribution=True,
@@ -113,7 +113,7 @@ class GeneratePackage:
         assert macos_pkg_builder.Packages(
             pkg_output="./dist/OpenCore-Patcher.pkg",
             pkg_bundle_id="com.dortania.opencore-legacy-patcher",
-            pkg_version=constants.Constants().patcher_version,
+            pkg_version=constants.Constants().patcher_bundle_version,
             pkg_allow_relocation=False,
             pkg_as_distribution=True,
             pkg_background="./ci_tooling/pkg_assets/PkgBackground-Installer.png",
@@ -136,7 +136,7 @@ class GeneratePackage:
         assert macos_pkg_builder.Packages(
             pkg_output="./dist/AutoPkg-Assets.pkg",
             pkg_bundle_id="com.dortania.pkg.AutoPkg-Assets",
-            pkg_version=constants.Constants().patcher_version,
+            pkg_version=constants.Constants().patcher_bundle_version,
             pkg_allow_relocation=False,
             pkg_as_distribution=True,
             pkg_background="./ci_tooling/pkg_assets/PkgBackground-AutoPkg.png",

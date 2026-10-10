@@ -15,7 +15,7 @@ from . import network_handler
 from .. import constants
 
 
-REPO_LATEST_RELEASE_URL: str = "https://api.github.com/repos/dortania/OpenCore-Legacy-Patcher/releases/latest"
+REPO_LATEST_RELEASE_URL: str = "https://api.github.com/repos/b00t0x/OpenCore-Legacy-Patcher/releases?per_page=100"
 
 
 class CheckBinaryUpdates:
@@ -99,17 +99,20 @@ class CheckBinaryUpdates:
             return None
 
         response = network_handler.NetworkUtilities().get(REPO_LATEST_RELEASE_URL)
-        data_set = response.json()
-
-        if "tag_name" not in data_set:
+        releases = response.json()
+        if not isinstance(releases, list):
             return None
-
-        # The release marked as latest will always be stable, and thus, have a proper version number
-        # But if not, let's not crash the program
-        try:
-            latest_remote_version = version.parse(data_set["tag_name"])
-        except version.InvalidVersion:
+        candidates = []
+        for release in releases:
+            if release.get("draft") or not any(asset.get("name") == "OpenCore-Patcher.pkg" for asset in release.get("assets", [])):
+                continue
+            try:
+                candidates.append((version.parse(release["tag_name"]), release))
+            except (version.InvalidVersion, KeyError):
+                continue
+        if not candidates:
             return None
+        latest_remote_version, data_set = max(candidates, key=lambda item: item[0])
 
         if not self._check_if_build_newer(latest_remote_version, self.binary_version):
             return None
@@ -121,7 +124,7 @@ class CheckBinaryUpdates:
                     "Name": asset["name"],
                     "Version": latest_remote_version,
                     "Link": asset["browser_download_url"],
-                    "Github Link": f"https://github.com/dortania/OpenCore-Legacy-Patcher/releases/{latest_remote_version}",
+                    "Github Link": data_set["html_url"],
                 }
                 return self.latest_details
 

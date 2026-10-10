@@ -116,8 +116,8 @@ class GenerateDiskImages:
 
             subprocess_wrapper.run_and_verify(
                 [
-                    "/usr/bin/curl", "-LO",
-                    f"https://github.com/dortania/PatcherSupportPkg/releases/download/{patcher_support_pkg_version}/{resource}"
+                    "/usr/bin/curl", "--fail", "-LO",
+                    f"{constants.Constants().url_patcher_support_pkg}{patcher_support_pkg_version}/{resource}"
                 ],
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE
             )
