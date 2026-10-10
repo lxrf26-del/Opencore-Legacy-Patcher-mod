@@ -65,6 +65,30 @@ jobs:
       - name: Build installer
         run: |
           "$PYTHON" Build-Project.command --run-as-individual-steps --prepare-package
+          pkgutil --expand-full dist/OpenCore-Patcher.pkg "$RUNNER_TEMP/expanded"
+          "$PYTHON" - <<'PYCODE'
+          import hashlib, json, os, plistlib, subprocess
+          from pathlib import Path
+          from opencore_legacy_patcher.constants import Constants
+          def sha(path):
+              with path.open('rb') as source:
+                  return hashlib.file_digest(source, 'sha256').hexdigest()
+          root = Path(os.environ['RUNNER_TEMP']) / 'expanded'
+          apps = list(root.rglob('OpenCore-Patcher.app'))
+          assert len(apps) == 1
+          app = apps[0]
+          info = plistlib.loads((app / 'Contents/Info.plist').read_bytes())
+          assert info['OCLPVersion'] == Constants().patcher_version
+          rule = '=certificate leaf = H"19FD838A17B096F42774B90A438950EC8052A4A5"'
+          subprocess.run(['codesign', '--verify', '--strict', '--deep', '--all-architectures', '-R', rule + ' and identifier "com.dortania.opencore-legacy-patcher"', str(app)], check=True)
+          helpers = list(root.rglob('com.dortania.opencore-legacy-patcher.privileged-helper'))
+          assert len(helpers) == 1
+          assert sha(helpers[0]) == sha(Path('ci_tooling/privileged_helper_tool') / helpers[0].name)
+          subprocess.run(['codesign', '--verify', '--strict', '--all-architectures', '-R', rule, str(helpers[0])], check=True)
+          images = [p for p in app.rglob('Universal-Binaries.dmg') if not p.is_symlink()]
+          assert len(images) == 1 and sha(images[0]) == sha(Path('Universal-Binaries.dmg'))
+          Path('dist/verification.json').write_text(json.dumps({'commit': os.environ['GITHUB_SHA'], 'version': info['OCLPVersion'], 'psp_sha256': sha(images[0]), 'helper_sha256': sha(helpers[0]), 'pkg_sha256': sha(Path('dist/OpenCore-Patcher.pkg')), 'signatures': 'verified after extraction'}, indent=2))
+          PYCODE
           cd dist
           shasum -a 256 OpenCore-Patcher.pkg > sha256sum.txt
       - name: Remove signing material
@@ -76,6 +100,7 @@ jobs:
           path: |
             dist/OpenCore-Patcher.pkg
             dist/sha256sum.txt
+            dist/verification.json
           if-no-files-found: error
       - uses: actions/upload-artifact@v4
         with:
