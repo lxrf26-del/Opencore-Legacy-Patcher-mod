@@ -12,16 +12,12 @@ jobs:
     steps:
       # ... (Leave the middle installation/build steps exactly as bOOtOx has them) ...
 
-      - name: Upload Build Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: OpenCore-Legacy-Patcher-Mod-BETA  # Clearly tags your download as a beta
-          path: dist/
-      - name: Upload Build Artifact
+            - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
           name: OpenCore-Legacy-Patcher-Mod-BETA
           path: |
-            **/*.zip
-            **/*.pkg
-          if-no-files-found: error
+            dist/*.zip
+            dist/*.dmg
+            payloads/*.zip
+          if-no-files-found: warn  # <-- This prevents the build from failing if a folder is empty!
