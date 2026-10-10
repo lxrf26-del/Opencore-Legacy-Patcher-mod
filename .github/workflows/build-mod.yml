@@ -31,8 +31,18 @@ jobs:
           sudo installer -pkg "$RUNNER_TEMP/python.pkg" -target /
           "$PYTHON" -m pip install -r requirements.txt
       - name: Fetch released PatcherSupportPkg
+        timeout-minutes: 20
         run: |
           version=$("$PYTHON" -c 'from opencore_legacy_patcher.constants import Constants; print(Constants().patcher_support_pkg_version)')
+          ready=false
+          for attempt in {1..30}; do
+            if gh release view "$version" --repo b00t0x/PatcherSupportPkg --json assets --jq '[.assets[].name] | contains(["Universal-Binaries.dmg", "sha256sum.txt"])' | grep -qx true; then
+              ready=true
+              break
+            fi
+            sleep 30
+          done
+          test "$ready" = true
           gh release download "$version" --repo b00t0x/PatcherSupportPkg --pattern Universal-Binaries.dmg --pattern sha256sum.txt
           shasum -a 256 -c sha256sum.txt
           codesign --verify -R '=certificate leaf = H"6DE7FC5377DEAC4F5FE21194684F57F553C3592C"' Universal-Binaries.dmg
